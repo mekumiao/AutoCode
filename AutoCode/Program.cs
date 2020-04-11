@@ -36,10 +36,10 @@ namespace AutoCode
             {
                 var temppath = Path.Combine(set.tempdir, item.tempname);
 
-                if (!File.Exists(temppath)) throw new Exception($"模板文件不存在:{Path.GetFileName(temppath)}");
+                if (!File.Exists(temppath)) throw new Exception($"模板文件不存在:{temppath}");
 
                 build = new TempManager(temppath).GetTempBuild();
-                Console.WriteLine($"模板编译成功! {Path.GetFileName(temppath)}");
+                Console.WriteLine($"模板编译成功! {temppath}");
                 tempdict.Add(item.tempname, build);
             }
 
@@ -58,19 +58,19 @@ namespace AutoCode
                     {
                         if (!File.Exists(datapath))
                         {
-                            Console.WriteLine($"数据文件不存在:{Path.GetFileName(datapath)}");
+                            Console.WriteLine($"数据文件不存在:{datapath}");
                             break;
                         }
                         //加载数据
                         build.LoadFromFile(datapath);
-                        Console.WriteLine($"数据加载成功! {Path.GetFileName(datapath)}");
+                        Console.WriteLine($"数据加载成功! {datapath}");
                         //生成代码
                         var code = build.Execute();
                         var outpath = Path.Combine(item.outdir, string.Format(item.filename, Path.GetFileNameWithoutExtension(dtname)));
                         using (var writer = new StreamWriter(outpath))
                         {
                             writer.Write(code);
-                            Console.WriteLine($"代码生成成功! {Path.GetFileName(outpath)}");
+                            Console.WriteLine($"代码生成成功! {outpath}");
                         }
                     }
                 }

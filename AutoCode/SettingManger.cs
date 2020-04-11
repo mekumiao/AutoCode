@@ -14,19 +14,20 @@ namespace AutoCode
 
         internal SettingManger()
         {
-            var basepath = Directory.GetCurrentDirectory();
-            var path = Path.Combine(basepath, "./setting.json");
+            var path = "./setting.json";
 
             using (var reader = new StreamReader(path))
             {
                 var jsonstr = reader.ReadToEnd();
                 setting = JsonConvert.DeserializeObject<Setting>(jsonstr);
 
-                setting.tempdir = PathHander(basepath, setting.tempdir);
-                setting.datadir = PathHander(basepath, setting.datadir);
-                setting.outdir = PathHander(basepath, setting.outdir);
-
-                setting.data.ForEach(x => x.outdir = PathHander(basepath, x.outdir, setting.outdir));
+                setting.data.ForEach(x =>
+                {
+                    if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
+                    {
+                        x.outdir = setting.outdir;
+                    }
+                });
             }
         }
 
