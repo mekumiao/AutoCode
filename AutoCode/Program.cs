@@ -21,13 +21,13 @@ namespace AutoCode
             {
                 Console.WriteLine($"发生异常:{ex.Message}!!!");
             }
-            Console.Write("按任意键退出!!!");
+            Console.Write("按Enter键退出!!!");
             Console.Read();
         }
 
         public static void Create()
         {
-            var set = new SettingManger().Setting;
+            var set = new SettingManger().setting;
             var tempdict = new Dictionary<string, ITempBuild>();
             var build = default(ITempBuild);
 
@@ -36,10 +36,10 @@ namespace AutoCode
             {
                 var temppath = Path.Combine(set.tempdir, item.tempname);
 
-                if (!File.Exists(temppath)) throw new Exception($"模板文件不存在:{temppath}");
+                if (!File.Exists(temppath)) throw new Exception($"模板文件不存在:{Path.GetFileName(temppath)}");
 
                 build = new TempManager(temppath).GetTempBuild();
-                Console.WriteLine($"模板编译成功! {temppath}");
+                Console.WriteLine($"模板编译成功! {Path.GetFileName(temppath)}");
                 tempdict.Add(item.tempname, build);
             }
 
@@ -58,19 +58,19 @@ namespace AutoCode
                     {
                         if (!File.Exists(datapath))
                         {
-                            Console.WriteLine($"数据文件不存在:{datapath}");
+                            Console.WriteLine($"数据文件不存在:{Path.GetFileName(datapath)}");
                             break;
                         }
                         //加载数据
                         build.LoadFromFile(datapath);
-                        Console.WriteLine($"数据加载成功! {datapath}");
+                        Console.WriteLine($"数据加载成功! {Path.GetFileName(datapath)}");
                         //生成代码
                         var code = build.Execute();
                         var outpath = Path.Combine(item.outdir, string.Format(item.filename, Path.GetFileNameWithoutExtension(dtname)));
                         using (var writer = new StreamWriter(outpath))
                         {
                             writer.Write(code);
-                            Console.WriteLine($"代码生成成功! {outpath}");
+                            Console.WriteLine($"代码生成成功! {Path.GetFileName(outpath)}");
                         }
                     }
                 }
