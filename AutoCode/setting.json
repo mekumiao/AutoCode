@@ -1,0 +1,24 @@
+{
+  "tempdir": "./temp",
+  "datadir": "./data",
+  "outdir": "./out",
+  "data": [
+    {
+      "tempname": "Bll-temp.txt",
+      "filename": "{0}Bll.cs",
+      "dataname": [ "Scrap.json", "Repair.json" ]
+    },
+    {
+      "tempname": "IService-temp.txt",
+      "filename": "I{0}Service.cs",
+      "outdir": "./out/xxxx",
+      "dataname": [ "Scrap.json", "Repair.json" ]
+    },
+    {
+      "tempname": "Service-temp.txt",
+      "filename": "{0}Service.cs",
+      "outdir": "./out",
+      "dataname": [ "Scrap.json", "Repair.json" ]
+    }
+  ]
+}
