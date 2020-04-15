@@ -54,23 +54,48 @@ namespace AutoCode
 
         public class Setting
         {
+            /// <summary>
+            /// 模板文件夹
+            /// </summary>
             public string tempdir { get; set; }
 
+            /// <summary>
+            /// 数据文件夹
+            /// </summary>
             public string datadir { get; set; }
 
+            /// <summary>
+            /// 全局输出目录
+            /// </summary>
             public string outdir { get; set; }
 
+            /// <summary>
+            /// 数据\模板 对应配置
+            /// </summary>
             public List<Data> data { get; set; }
         }
 
         public class Data
         {
+            /// <summary>
+            /// 模板名称
+            /// </summary>
             public string tempname { get; set; }
 
+            /// <summary>
+            /// 输出文件名
+            /// {0} 表示 数据文件名称(不包含后缀名)
+            /// </summary>
             public string filename { get; set; }
 
+            /// <summary>
+            /// 输出目录 (如果目录不存在,则使用全局目录)
+            /// </summary>
             public string outdir { get; set; }
 
+            /// <summary>
+            /// 数据文件名 (包含后缀名)
+            /// </summary>
             public List<string> dataname { get; set; }
         }
 
