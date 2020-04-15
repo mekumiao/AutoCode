@@ -22,10 +22,12 @@ public class {{val.type}} {{val.name}}//输出
 #### 3.条件
 
 ~~~html
+//不带else
 {{if _data.index > 0}}
 ...
 {{/if}}
 
+//带else
 {{if _data.count >10}}
 ...
 {{else if _data.count > 5}}
