@@ -1,0 +1,39 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.ServiceModel;
+using System.ServiceModel.Activation;
+using System.Text;
+using ZxSoftERPSC.BLL;
+using ZxSoftERPSC.Model;
+
+namespace ZxSoftERPSC.Service
+{
+	/// <summary>
+	/// {{_data.remark}}
+	/// </summary>
+	[AspNetCompatibilityRequirements(RequirementsMode = AspNetCompatibilityRequirementsMode.Allowed)]
+	[ServiceBehavior(InstanceContextMode = InstanceContextMode.PerCall)]
+	public class {{_data.serviceName}} : I{{_data.serviceName}}
+	{
+		{{each _data.apis val key}}
+        #region {{val.remark}}
+        /// <summary>
+        /// {{val.remark}}
+        /// </summary>
+        /// <param name="strJson"></param>
+        /// <returns></returns>
+        public ApiOutEntity<{{val.result}}> {{val.name}}(Stream strJson)
+        {
+            //初始化(获取Headers和把报文Body生成jsonString)
+            ServiceBase.Init(strJson, System.Reflection.MethodBase.GetCurrentMethod().Name.ToString());
+            var bll = {{_data.bllName}}.GetInstance();
+            return bll.{{val.name}}();
+        }
+        #endregion
+		
+		{{/each}}
+    }
+}

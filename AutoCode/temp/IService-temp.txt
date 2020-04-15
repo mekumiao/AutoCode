@@ -1,0 +1,33 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.ServiceModel;
+using System.ServiceModel.Web;
+using System.Text;
+using ZxSoftERPSC.Model;
+
+namespace ZxSoftERPSC.Service
+{
+    /// <summary>
+    /// {{_data.remark}}
+    /// </summary>
+    [ServiceContract]
+    public interface I{{_data.serviceName}}
+    {
+		{{each _data.apis val key}}
+        #region {{val.remark}}
+        /// <summary>
+        /// {{val.remark}}
+        /// </summary>
+        /// <param name="strJson"></param>
+        /// <returns></returns>
+        [OperationContract]
+        [WebInvoke(Method = "POST", UriTemplate = "{{val.name}}", BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json, RequestFormat = WebMessageFormat.Json)]
+        ApiOutEntity<{{val.result}}> {{val.name}}(Stream strJson);
+        #endregion
+		
+		{{/each}}
+    }
+}

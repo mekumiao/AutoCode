@@ -1,0 +1,70 @@
+{
+	"remark": "送修单",
+	"serviceName": "RepairService",
+	"bllName": "RepairBll",
+	"key":"ra_ccode",
+	"time":"ra_btimestamp",
+	"sumName":"p_repairinfosum",
+	"codeEnum":"RepairName",
+	"tabinfos": [
+		"repair_ra",
+		"repairc_rac",
+		"v_repairInfo",
+		"v_repaircInfo",
+		"v_repairInfoDetail",
+		"v_repairMakeInfoAll",
+		"v_repairInfoSum"
+	],
+	"apis": [
+		{
+			"name": "CreateRepairRac",
+			"result": "DTO_SetCcode",
+			"remark": "单据新增(主子表)"
+		},
+		{
+			"name": "UpdateRepairRac",
+			"result": "object",
+			"remark": "单据更新(主子表)"
+		},
+		{
+			"name": "DeleteRepairRac",
+			"result": "object",
+			"remark": "单据删除(主子表)"
+		},
+		{
+			"name": "SearchRepairRac",
+			"result": "v_repairInfo,v_repaircInfo",
+			"remark": "单据查询(主子表)"
+		},
+		{
+			"name": "SearchRepairByView",
+			"result": "v_repairInfo",
+			"remark": "单据查询(主表)"
+		},
+		{
+			"name": "SearchRepaircByView",
+			"result": "v_repaircInfo",
+			"remark": "单据查询(子表)"
+		},
+		{
+			"name": "SearchRepairAllByView",
+			"result": "v_repairMakeInfoAll",
+			"remark": "平衡视图"
+		},
+		{
+			"name": "GetRepairInfoSum",
+			"result": "v_repairInfoSum",
+			"remark": "全表汇总"
+		},
+		{
+			"name": "AudtRepair",
+			"result": "object",
+			"remark": "单据审核"
+		},
+		{
+			"name": "UnAudtRepair",
+			"result": "object",
+			"remark": "单据弃审"
+		}
+	]
+}

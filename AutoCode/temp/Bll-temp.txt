@@ -1,0 +1,396 @@
+using Microsoft.Practices.EnterpriseLibrary.PolicyInjection;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using ZxSoftERPSC.Common;
+using ZxSoftERPSC.Model;
+using System.Transactions;
+using Autofac;
+using ZxSoftERPSC.DAL;
+using Newtonsoft.Json.Linq;
+using System.Linq.Dynamic;
+
+namespace ZxSoftERPSC.BLL
+{
+    /// <summary>
+    /// {{_data.remark}}
+    /// </summary>
+    public class {{_data.bllName}} : ASysBaseBLL
+    {
+        private static {{_data.bllName}} oUserOpertion = null;
+        public {{_data.bllName}}() { }
+
+        #region 此方法用作WCF服务调用
+        /// <summary>
+        /// 此方法用作WCF服务调用
+        /// </summary>
+        /// <returns></returns>
+        public static {{_data.bllName}} GetInstance()
+        {
+            if (oUserOpertion == null)
+            {
+                oUserOpertion = PolicyInjection.Create<{{_data.bllName}}>();
+            }
+            PublicStaticBLL.InitContainer();
+            return oUserOpertion;
+        }
+        #endregion
+
+        #region 单据新增(主子表)
+        /// <summary>
+        /// 单据新增(主子表)
+        /// </summary>
+        /// <returns></returns>
+        [ZxSoftERPSC.BLL.BaseAop.CheckHandler(Order = 1)]
+        public ApiOutEntity<{{_data.apis[0].result}}> {{_data.apis[0].name}}()
+        {
+            if (!SessionInfo.GetifTokenMapping()) return InitApiOutJsonObj<{{_data.apis[0].result}}>();
+            try
+            {
+                var dtoList = new List<{{_data.apis[0].result}}>();
+
+                var data = UtilHelper.InJsonToJObject(SessionInfo.GetInJsonString());
+                var str = data.GetValueFromStr(JsonIONameBase.FirstRecordset, typeof({{_data.tabinfos[0]}}).Name).ToString();
+                var strc = data.GetValueFromStr(JsonIONameBase.FirstRecordset, typeof({{_data.tabinfos[1]}}).Name).ToString();
+
+                var obj = UtilHelper.ConvertJsonStrToObject<{{_data.tabinfos[0]}}>(str);
+                var list = UtilHelper.ConvertJsonStrToList<{{_data.tabinfos[1]}}>(strc);
+
+                if (obj != null && list != null)
+                {
+                    // 生成单号
+                    string ccode = obj.{{_data.key}};
+                    syscode_sd sd = new syscode_sd();
+                    syscodec_sdc sdc = new syscodec_sdc();
+                    SysCodeBll sc = new SysCodeBll();
+
+                    dtoList = SysCodeBll.GetSysCode(ref sd, ref sdc, ref ccode, FundNameMsg.{{_data.codeEnum}});
+                    obj.{{_data.key}} = ccode;
+                    if (string.IsNullOrEmpty(ccode))
+                    {
+                        return InitApiOutJsonObj<DTO_SetCcode>(dtoList);
+                    }
+                    using (var scope = new TransactionScope())
+                    {
+                        obj = CommonBase.UpdateDateAndMan<{{_data.tabinfos[0]}}>(obj, false);
+                        //执行聚合函数 [计算 合计 或者 平均]
+                        obj = Adapter.Adapt<List<{{_data.tabinfos[1]}}>, {{_data.tabinfos[0]}}>(list, obj);
+                        base.CreatTable<{{_data.tabinfos[0]}}>(obj);
+                        list.ForEach(item =>
+                        {
+                            item.{{_data.key}} = obj.{{_data.key}};
+                        });
+                        base.CreatTable<{{_data.tabinfos[1]}}>(list);
+
+                        sc.SaveSysCodeSdc(sd, sdc);
+                        scope.Complete();
+                    }
+                    SessionInfoUpdate.InitapiOutEntityValue(APIResultMsg.Rst200, APIResultMsg.Msg200);
+                }
+                return InitApiOutJsonObj<{{_data.apis[0].result}}>(dtoList);
+            }
+            catch (Exception ex)
+            {
+                CommonBase.GetInnerException(ex);
+                return InitApiOutJsonObj<{{_data.apis[0].result}}>();
+            }
+        }
+        #endregion
+
+        #region 单据更新(主子表)
+        /// <summary>
+        /// 单据更新(主子表)
+        /// </summary>
+        /// <returns></returns>
+        [ZxSoftERPSC.BLL.BaseAop.CheckHandler(Order = 1)]
+        public ApiOutEntity<{{_data.apis[1].result}}> {{_data.apis[1].name}}()
+        {
+            if (!SessionInfo.GetifTokenMapping()) return InitApiOutJsonObj<{{_data.apis[1].result}}>();
+            try
+            {
+                var data = UtilHelper.InJsonToJObject(SessionInfo.GetInJsonString());
+                var str = data.GetValueFromStr(JsonIONameBase.FirstRecordset, typeof({{_data.tabinfos[0]}}).Name).ToString();
+                var strc = data.GetValueFromStr(JsonIONameBase.FirstRecordset, typeof({{_data.tabinfos[1]}}).Name).ToString();
+
+                var obj = UtilHelper.ConvertJsonStrToObject<{{_data.tabinfos[0]}}>(str);
+                var list = UtilHelper.ConvertJsonStrToList<{{_data.tabinfos[1]}}>(strc);
+
+                if (obj != null && list != null)
+                {
+                    using (var scope = new TransactionScope())
+                    {
+                        //是否可修改
+                        BillCommonMethod.CheckBill<{{_data.tabinfos[0]}}>(x => x.{{_data.key}} == obj.{{_data.key}}, obj.{{_data.time}}, FundNameMsg.{{_data.codeEnum}});
+
+                        //赋值给单据修改人、修改时间
+                        obj = CommonBase.UpdateDateAndMan<{{_data.tabinfos[0]}}>(obj, false);
+                        //对明细字段进行汇总
+                        obj = Adapter.Adapt<List<{{_data.tabinfos[1]}}>, {{_data.tabinfos[0]}}>(list, obj);
+                        base.UpdateTable<{{_data.tabinfos[0]}}>(obj);
+                        base.DeleteTable<{{_data.tabinfos[1]}}>(x => x.{{_data.key}} == obj.{{_data.key}});
+
+                        list.ForEach(item => item.{{_data.key}} = obj.{{_data.key}});
+                        base.CreatTable<{{_data.tabinfos[1]}}>(list);
+
+                        scope.Complete();
+                        SessionInfoUpdate.InitapiOutEntityValue(APIResultMsg.Rst200, APIResultMsg.Msg200);
+                    }
+                }
+                return InitApiOutJsonObj<{{_data.apis[1].result}}>();
+            }
+            catch (Exception ex)
+            {
+                CommonBase.GetInnerException(ex);
+                return InitApiOutJsonObj<{{_data.apis[1].result}}>();
+            }
+        }
+        #endregion
+
+        #region 单据删除(主子表)
+        /// <summary>
+        /// 单据删除(主子表)
+        /// </summary>
+        /// <returns></returns>
+        [ZxSoftERPSC.BLL.BaseAop.CheckHandler(Order = 1)]
+        public ApiOutEntity<{{_data.apis[2].result}}> {{_data.apis[2].name}}()
+        {
+            if (!SessionInfo.GetifTokenMapping()) return InitApiOutJsonObj<{{_data.apis[2].result}}>();
+            try
+            {
+                var strwhere = UtilHelper.GetJsonOjbectsubValue(SessionInfo.GetInJsonString(), JsonIONameBase.Condition, 0, JsonIONameBase.CustData, JsonIONameBase.Params);
+
+                var code = BillCommonMethod.CheckBill<{{_data.tabinfos[0]}}>(strwhere, FundNameMsg.{{_data.codeEnum}});
+                using (var scope = new TransactionScope())
+                {
+                    base.DeleteTable<{{_data.tabinfos[1]}}>(x => x.{{_data.key}} == code);
+                    base.DeleteTable<{{_data.tabinfos[0]}}>(strwhere);
+                    scope.Complete();
+                }
+                SessionInfoUpdate.InitapiOutEntityValue(APIResultMsg.Rst200, APIResultMsg.Msg200);
+                return InitApiOutJsonObj<{{_data.apis[2].result}}>();
+            }
+            catch (Exception ex)
+            {
+                CommonBase.GetInnerException(ex);
+                return InitApiOutJsonObj<{{_data.apis[2].result}}>();
+            }
+        }
+        #endregion
+
+        #region 单据查询(主子表)
+        /// <summary>
+        /// 单据查询(主子表)
+        /// </summary>
+        /// <returns></returns>
+        [ZxSoftERPSC.BLL.BaseAop.CheckHandler(Order = 1)]
+        public ApiOutEntity<{{_data.apis[3].result}}> {{_data.apis[3].name}}()
+        {
+            if (!SessionInfo.GetifTokenMapping()) return InitApiOutJsonObj<{{_data.apis[3].result}}>();
+            try
+            {
+                //取得API传入的条件
+                var data = UtilHelper.InJsonToJObject(SessionInfo.GetInJsonString());
+                var strwhere = data.GetValueFromStr(JsonIONameBase.FirstCondition).ToString();
+                var strwherec = data.GetValueFromStr(JsonIONameBase.FirstConditionc).ToString();
+
+                var query = FilterTable<{{_data.tabinfos[2]}}>(LinqExtendHelper.InitInCondition(strwhere)).ToList();
+                var queryc = FilterTable<{{_data.tabinfos[3]}}>(LinqExtendHelper.InitInCondition(strwherec)).ToList();
+                SessionInfoUpdate.InitapiOutEntityValue(APIResultMsg.Rst200, APIResultMsg.Msg200);
+                return InitApiOutJsonObj<{{_data.apis[3].result}}>(query, queryc);
+            }
+            catch (Exception ex)
+            {
+                CommonBase.GetInnerException(ex);
+                return InitApiOutJsonObj<{{_data.apis[3].result}}>();
+            }
+        }
+        #endregion
+
+        #region 单据查询(主表)
+        /// <summary>
+        /// 单据查询(主表)
+        /// </summary>
+        /// <returns></returns>
+        [ZxSoftERPSC.BLL.BaseAop.CheckHandler(Order = 1)]
+        public ApiOutEntity<{{_data.apis[4].result}}> {{_data.apis[4].name}}()
+        {
+            if (!SessionInfo.GetifTokenMapping()) return InitApiOutJsonObj<{{_data.apis[4].result}}>();
+            try
+            {
+                var data = UtilHelper.InJsonToJObject(SessionInfo.GetInJsonString());
+                var strwhere = LinqExtendHelper.InitInCondition(data.GetValueFromStr(JsonIONameBase.FirstCondition).ToString());
+                var pageSize = data.GetValueFromStr(JsonIONameBase.FirstParams, JsonIONameBase.PageSize).ToString();
+                var pageIndex = data.GetValueFromStr(JsonIONameBase.FirstParams, JsonIONameBase.PageIndex).ToString();
+                var orderBy = data.GetValueFromStr(JsonIONameBase.FirstParams, JsonIONameBase.OrderBy).ToString();
+
+                List<{{_data.tabinfos[2]}}> lstProdpg = null;
+                if (!CommonBase.GetProperties<{{_data.tabinfos[0]}}>(strwhere, "{{_data.key}}"))
+                {
+                    lstProdpg = base.PageModel<{{_data.tabinfos[2]}}>(strwhere, pageIndex, pageSize, orderBy);
+                }
+                else
+                {
+                    //总行数
+                    int count = FilterTable<{{_data.tabinfos[4]}}>(strwhere).DistinctBy(m => m.{{_data.key}}).Count();
+                    //初始化分页属性
+                    int pageIndexInt = 0;
+                    int pageSizeInt = 0;
+                    int tottalPage = 0;
+
+                    if (GetPageParms<{{_data.tabinfos[4]}}>(count, pageIndex, pageSize, ref orderBy, ref pageIndexInt, ref pageSizeInt, ref tottalPage))
+                    {
+                        using (var transactionScope = CommonBase.CreateTSWithNolock())
+                        {
+                            using (var dbContext = BootStrap.container().Resolve<IDALContext>())
+                            {
+                                lstProdpg = (from a in dbContext.Repoty.All<{{_data.tabinfos[2]}}>()
+                                             join b in dbContext.Repoty.Filter<{{_data.tabinfos[4]}}>(strwhere) on a.{{_data.key}} equals b.{{_data.key}}
+                                             select a).Distinct().OrderBy(orderBy).Skip(pageSizeInt * (pageIndexInt - 1)).Take(pageSizeInt).ToList();
+                                SessionInfo.SetOutPages(tottalPage.ToString());
+                                SessionInfo.SetOutDataCount(count.ToString());
+                            }
+                        }
+                    }
+                }
+                SessionInfoUpdate.InitapiOutEntityValue(APIResultMsg.Rst200, APIResultMsg.Msg200);
+                return InitApiOutJsonObj<{{_data.apis[4].result}}>(lstProdpg);
+            }
+            catch (Exception ex)
+            {
+                CommonBase.GetInnerException(ex);
+                return InitApiOutJsonObj<{{_data.apis[4].result}}>();
+            }
+        }
+        #endregion
+
+        #region 单据查询(子表)
+        /// <summary>
+        /// 单据查询(子表)
+        /// </summary>
+        /// <returns></returns>
+        [ZxSoftERPSC.BLL.BaseAop.CheckHandler(Order = 1)]
+        public ApiOutEntity<{{_data.apis[5].result}}> {{_data.apis[5].name}}()
+        {
+            if (!SessionInfo.GetifTokenMapping()) return InitApiOutJsonObj<{{_data.apis[5].result}}>();
+            try
+            {
+                //取得API传入的条件
+                string strWhereCondition = LinqExtendHelper.InitInCondition(UtilHelper.GetJsonOjbectsubValue(SessionInfo.GetInJsonString(), JsonIONameBase.Condition, 0, JsonIONameBase.CustData, JsonIONameBase.Params));
+                var query = FilterTable<{{_data.tabinfos[3]}}>(strWhereCondition).ToList();
+                SessionInfoUpdate.InitapiOutEntityValue(APIResultMsg.Rst200, APIResultMsg.Msg200);
+                return InitApiOutJsonObj<{{_data.tabinfos[3]}}>(query);
+            }
+            catch (Exception ex)
+            {
+                CommonBase.GetInnerException(ex);
+                return InitApiOutJsonObj<{{_data.apis[5].result}}>();
+            }
+        }
+        #endregion
+
+        #region 平衡视图
+        /// <summary>
+        /// 平衡视图
+        /// </summary>
+        /// <returns></returns>
+        [ZxSoftERPSC.BLL.BaseAop.CheckHandler(Order = 1)]
+        public ApiOutEntity<{{_data.apis[6].result}}> {{_data.apis[6].name}}()
+        {
+            if (!SessionInfo.GetifTokenMapping()) return InitApiOutJsonObj<{{_data.apis[6].result}}>();
+            return base.SearchForViewAll<{{_data.tabinfos[5]}}>();
+        }
+        #endregion
+
+        #region 全表汇总
+        /// <summary>
+        /// 全表汇总
+        /// </summary>
+        /// <returns></returns>
+        [ZxSoftERPSC.BLL.BaseAop.CheckHandler(Order = 1)]
+        public ApiOutEntity<{{_data.apis[7].result}}> {{_data.apis[7].name}}()
+        {
+            if (!SessionInfo.GetifTokenMapping()) return InitApiOutJsonObj<{{_data.apis[7].result}}>();
+            return base.GetSummaryForViewAll<{{_data.apis[7].result}}>("{{_data.sumName}}");
+        }
+        #endregion
+
+        #region 单据审核
+        /// <summary>
+        /// 单据审核
+        /// </summary>
+        /// <returns></returns>
+        [ZxSoftERPSC.BLL.BaseAop.CheckHandler(Order = 1)]
+        public ApiOutEntity<{{_data.apis[8].result}}> {{_data.apis[8].name}}()
+        {
+            if (!SessionInfo.GetifTokenMapping()) return InitApiOutJsonObj<{{_data.apis[8].result}}>();
+            try
+            {
+                var lstParams = UtilHelper.GetParms();
+
+                var audtrs = AudtAbstract.EachExec(lstParams, EnumBase.Dbflag.FlagTrue, (condit) =>
+                {
+                    using (var scope = CommonBase.CreateTS())
+                    {
+                        using (var dbContext = DALContext)
+                        {
+                            //var hander = new QualityAudtHandle(dbContext, Adapter, condit, GetMaxCode);
+                            //hander.LoadData();
+                            //hander.Checking();
+                            //hander.Handle();
+                        }
+                        scope.Complete();
+                    }
+                });
+
+                CommonBase.SetSessionInfoMsg(audtrs.Item1, audtrs.Item2);
+                return InitApiOutJsonObj<{{_data.apis[8].result}}>();
+            }
+            catch (Exception ex)
+            {
+                CommonBase.GetInnerException(ex);
+                return InitApiOutJsonObj<{{_data.apis[8].result}}>();
+            }
+        }
+        #endregion
+
+        #region 单据弃审
+        /// <summary>
+        /// 单据弃审
+        /// </summary>
+        /// <returns></returns>
+        [ZxSoftERPSC.BLL.BaseAop.CheckHandler(Order = 1)]
+        public ApiOutEntity<{{_data.apis[9].result}}> {{_data.apis[9].name}}()
+        {
+            if (!SessionInfo.GetifTokenMapping()) return InitApiOutJsonObj<object>();
+            try
+            {
+                var lstParams = UtilHelper.GetParms();
+
+                var audtrs = AudtAbstract.EachExec(lstParams, EnumBase.Dbflag.FlagFalse, (condit) =>
+                {
+                    using (var scope = CommonBase.CreateTS())
+                    {
+                        using (var dbContext = DALContext)
+                        {
+                            //var hander = new QualityAudtHandle(dbContext, Adapter, condit, GetMaxCode);
+                            //hander.LoadData();
+                            //hander.Checking();
+                            //hander.Handle();
+                        }
+                        scope.Complete();
+                    }
+                });
+
+                CommonBase.SetSessionInfoMsg(audtrs.Item1, audtrs.Item2);
+                return InitApiOutJsonObj<{{_data.apis[8].result}}>();
+            }
+            catch (Exception ex)
+            {
+                CommonBase.GetInnerException(ex);
+                return InitApiOutJsonObj<{{_data.apis[8].result}}>();
+            }
+        }
+        #endregion
+    }
+}

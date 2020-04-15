@@ -1,0 +1,70 @@
+{
+	"remark": "报废单",
+	"serviceName": "ScrapService",
+	"bllName": "ScrapBll",
+	"key":"srp_ccode",
+	"time":"srp_btimestamp",
+	"sumName":"p_scrapinfosum",
+	"codeEnum":"ScrapName",
+	"tabinfos": [
+		"scrap_srp",
+		"scrapc_srpc",
+		"v_scrapInfo",
+		"v_scrapcInfo",
+		"v_scrapInfoDetail",
+		"v_scrapMakeInfoAll",
+		"v_scrapInfoSum"
+	],
+	"apis": [
+		{
+			"name": "CreateScrapScc",
+			"result": "DTO_SetCcode",
+			"remark": "单据新增(主子表)"
+		},
+		{
+			"name": "UpdateScrapScc",
+			"result": "object",
+			"remark": "单据更新(主子表)"
+		},
+		{
+			"name": "DeleteScrapScc",
+			"result": "object",
+			"remark": "单据删除(主子表)"
+		},
+		{
+			"name": "SearchScrapScc",
+			"result": "v_scrapInfo,v_scrapcInfo",
+			"remark": "单据查询(主子表)"
+		},
+		{
+			"name": "SearchScrapByView",
+			"result": "v_scrapInfo",
+			"remark": "单据查询(主表)"
+		},
+		{
+			"name": "SearchScrapcByView",
+			"result": "v_scrapcInfo",
+			"remark": "单据查询(子表)"
+		},
+		{
+			"name": "SearchScrapAllByView",
+			"result": "v_scrapMakeInfoAll",
+			"remark": "平衡视图"
+		},
+		{
+			"name": "GetScrapInfoSum",
+			"result": "v_scrapInfoSum",
+			"remark": "全表汇总"
+		},
+		{
+			"name": "AudtScrap",
+			"result": "object",
+			"remark": "单据审核"
+		},
+		{
+			"name": "UnAudtScrap",
+			"result": "object",
+			"remark": "单据弃审"
+		}
+	]
+}
